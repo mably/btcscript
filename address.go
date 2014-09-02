@@ -5,8 +5,8 @@
 package btcscript
 
 import (
-	"github.com/conformal/btcnet"
-	"github.com/conformal/btcutil"
+	"github.com/mably/btcnet"
+	"github.com/mably/btcutil"
 )
 
 // ExtractPkScriptAddrs returns the type of script, addresses and required

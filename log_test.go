@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/conformal/btcscript"
+	"github.com/mably/btcscript"
 )
 
 func TestSetLogWriter(t *testing.T) {
