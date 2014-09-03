@@ -1,8 +1,8 @@
 btcscript
 =========
 
-[![Build Status](https://travis-ci.org/conformal/btcscript.png?branch=master)]
-(https://travis-ci.org/conformal/btcscript)
+[![Build Status](https://travis-ci.org/mably/btcscript.png?branch=master)]
+(https://travis-ci.org/mably/btcscript)
 
 Package btcscript implements the bitcoin transaction scripts.  There is
 a comprehensive test suite. `test_coverage.txt` contains the current
