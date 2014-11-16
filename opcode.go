@@ -6,7 +6,6 @@ package btcscript
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"crypto/sha1"
 	"encoding/binary"
 	"encoding/hex"
@@ -939,23 +938,23 @@ func (pop *parsedOpcode) conditional() bool {
 func (pop *parsedOpcode) exec(s *Script) error {
 	// Disabled opcodes are ``fail on program counter''.
 	if pop.disabled() {
-		return StackErrOpDisabled
+		return ErrStackOpDisabled
 	}
 
 	// Always-illegal opcodes are ``fail on program counter''.
 	if pop.alwaysIllegal() {
-		return StackErrReservedOpcode
+		return ErrStackReservedOpcode
 	}
 
 	// Note that this includes OP_RESERVED which counts as a push operation.
 	if pop.opcode.value > OP_16 {
 		s.numOps++
 		if s.numOps > MaxOpsPerScript {
-			return StackErrTooManyOperations
+			return ErrStackTooManyOperations
 		}
 
 	} else if len(pop.data) > MaxScriptElementSize {
-		return StackErrElementTooBig
+		return ErrStackElementTooBig
 	}
 
 	// If we are not a conditional opcode and we aren't executing, then
@@ -1012,7 +1011,7 @@ func (pop *parsedOpcode) bytes() ([]byte, error) {
 	retbytes[0] = pop.opcode.value
 	if pop.opcode.length == 1 {
 		if len(pop.data) != 0 {
-			return nil, StackErrInvalidOpcode
+			return nil, ErrStackInvalidOpcode
 		}
 		return retbytes, nil
 	}
@@ -1041,7 +1040,7 @@ func (pop *parsedOpcode) bytes() ([]byte, error) {
 	retbytes = append(retbytes, pop.data...)
 
 	if len(retbytes) != nbytes {
-		return nil, StackErrInvalidOpcode
+		return nil, ErrStackInvalidOpcode
 	}
 
 	return retbytes, nil
@@ -1050,16 +1049,16 @@ func (pop *parsedOpcode) bytes() ([]byte, error) {
 // opcode implementation functions from here
 
 func opcodeDisabled(op *parsedOpcode, s *Script) error {
-	return StackErrOpDisabled
+	return ErrStackOpDisabled
 }
 
 func opcodeReserved(op *parsedOpcode, s *Script) error {
-	return StackErrReservedOpcode
+	return ErrStackReservedOpcode
 }
 
 // Recognised opcode, but for bitcoind internal use only.
 func opcodeInvalid(op *parsedOpcode, s *Script) error {
-	return StackErrInvalidOpcode
+	return ErrStackInvalidOpcode
 }
 
 func opcodeFalse(op *parsedOpcode, s *Script) error {
@@ -1141,7 +1140,7 @@ func opcodeNotIf(op *parsedOpcode, s *Script) error {
 func opcodeElse(op *parsedOpcode, s *Script) error {
 	if len(s.condStack) < 2 {
 		// intial true cannot be toggled, only pushed conditionals
-		return StackErrNoIf
+		return ErrStackNoIf
 	}
 
 	switch s.condStack[0] {
@@ -1160,7 +1159,7 @@ func opcodeElse(op *parsedOpcode, s *Script) error {
 func opcodeEndif(op *parsedOpcode, s *Script) error {
 	if len(s.condStack) < 2 {
 		// intial true cannot be popped, only pushed conditionals
-		return StackErrNoIf
+		return ErrStackNoIf
 	}
 
 	stk := make([]int, len(s.condStack)-1, len(s.condStack)-1)
@@ -1176,13 +1175,13 @@ func opcodeVerify(op *parsedOpcode, s *Script) error {
 	}
 
 	if verified != true {
-		return StackErrVerifyFailed
+		return ErrStackVerifyFailed
 	}
 	return nil
 }
 
 func opcodeReturn(op *parsedOpcode, s *Script) error {
-	return StackErrEarlyReturn
+	return ErrStackEarlyReturn
 }
 
 func opcodeToAltStack(op *parsedOpcode, s *Script) error {
@@ -1771,7 +1770,7 @@ func opcodeCheckSig(op *parsedOpcode, s *Script) error {
 	}
 
 	// Trim off hashtype from the signature string.
-	hashType := sigStr[len(sigStr)-1]
+	hashType := SigHashType(sigStr[len(sigStr)-1])
 	sigStr = sigStr[:len(sigStr)-1]
 
 	// Get script from the last OP_CODESEPARATOR and without any subsequent
@@ -1812,7 +1811,7 @@ func opcodeCheckSig(op *parsedOpcode, s *Script) error {
 			hex.Dump(pkStr), pubKey.X, pubKey.Y,
 			signature.R, signature.S, hex.Dump(hash))
 	}))
-	ok := ecdsa.Verify(pubKey.ToECDSA(), hash, signature.R, signature.S)
+	ok := signature.Verify(hash, pubKey)
 	s.dstack.PushBool(ok)
 	return nil
 }
@@ -1839,16 +1838,16 @@ func opcodeCheckMultiSig(op *parsedOpcode, s *Script) error {
 	}
 
 	// XXX arbitrary limits
-	// nore more than 20 pubkeyhs, or 201 operations
+	// nore more than 20 pubkeys, or 201 operations
 
 	// PopInt promises that the int returned is 32 bit.
 	npk := int(numPubkeys.Int64())
 	if npk < 0 || npk > MaxPubKeysPerMultiSig {
-		return StackErrTooManyPubkeys
+		return ErrStackTooManyPubkeys
 	}
 	s.numOps += npk
 	if s.numOps > MaxOpsPerScript {
-		return StackErrTooManyOperations
+		return ErrStackTooManyOperations
 	}
 	pubKeyStrings := make([][]byte, npk)
 	pubKeys := make([]*btcec.PublicKey, npk)
@@ -1932,7 +1931,8 @@ func opcodeCheckMultiSig(op *parsedOpcode, s *Script) error {
 		// check signatures.
 		success := false
 
-		hash := calcScriptHash(script, signatures[i].ht, &s.tx, s.txidx)
+		hash := calcScriptHash(script, SigHashType(signatures[i].ht),
+			&s.tx, s.txidx)
 	inner:
 		// Find first pubkey that successfully validates signature.
 		// we start off the search from the key that was successful
@@ -1946,8 +1946,7 @@ func opcodeCheckMultiSig(op *parsedOpcode, s *Script) error {
 					continue
 				}
 			}
-			success = ecdsa.Verify(pubKeys[curPk].ToECDSA(), hash,
-				signatures[i].s.R, signatures[i].s.S)
+			success = signatures[i].s.Verify(hash, pubKeys[curPk])
 			if success {
 				break inner
 			}
