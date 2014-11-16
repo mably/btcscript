@@ -6,11 +6,8 @@ package btcscript_test
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/big"
 	"testing"
 
 	"github.com/conformal/btcec"
@@ -129,7 +126,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xc9, 0x97, 0xa5, 0xe5,
 							0x6e, 0x10, 0x41, 0x02,
@@ -235,7 +232,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xc9, 0x97, 0xa5, 0xe5,
 							0x6e, 0x10, 0x41, 0x02,
@@ -326,7 +323,7 @@ var txTests = []txTest{
 			0x12, 0xa3, btcscript.OP_CHECKSIG,
 		},
 		idx:     0,
-		err:     btcscript.StackErrScriptFailed,
+		err:     btcscript.ErrStackScriptFailed,
 		nSigOps: 1,
 		scriptInfo: btcscript.ScriptInfo{
 			PkScriptClass:  btcscript.PubKeyTy,
@@ -341,7 +338,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xc9, 0x97, 0xa5, 0xe5,
 							0x6e, 0x10, 0x41, 0x02,
@@ -449,7 +446,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xc9, 0x97, 0xa5, 0xe5,
 							0x6e, 0x10, 0x41, 0x02,
@@ -558,7 +555,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x5f, 0x38, 0x6c, 0x8a,
 							0x38, 0x42, 0xc9, 0xa9,
@@ -664,7 +661,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xfe, 0x15, 0x62, 0xc4,
 							0x8b, 0x3a, 0xa6, 0x37,
@@ -712,7 +709,7 @@ var txTests = []txTest{
 					Sequence: 4294967295,
 				},
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x2a, 0xc7, 0xee, 0xf8,
 							0xa9, 0x62, 0x2d, 0xda,
@@ -838,7 +835,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0xf6, 0x04, 0x4c, 0x0a,
 							0xd4, 0x85, 0xf6, 0x33,
@@ -880,7 +877,7 @@ var txTests = []txTest{
 					Sequence: 4294967295,
 				},
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x9c, 0x6a, 0xf0, 0xdf,
 							0x66, 0x69, 0xbc, 0xde,
@@ -968,7 +965,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x37, 0xb1, 0x7d, 0x76,
 							0x38, 0x51, 0xcd, 0x1a,
@@ -1006,7 +1003,7 @@ var txTests = []txTest{
 					Sequence: 4294967295,
 				},
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x37, 0xb1, 0x7d, 0x76,
 							0x38, 0x51, 0xcd, 0x1a,
@@ -1082,7 +1079,7 @@ var txTests = []txTest{
 		idx:           1,
 		bip16:         false,
 		nSigOps:       0, // multisig is in the pkScript!
-		scriptInfoErr: btcscript.StackErrNonPushOnly,
+		scriptInfoErr: btcscript.ErrStackNonPushOnly,
 	},
 	// same as previous but with one byte changed to make signature fail
 	{
@@ -1091,7 +1088,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x37, 0xb1, 0x7d, 0x76,
 							0x38, 0x51, 0xcd, 0x1a,
@@ -1129,7 +1126,7 @@ var txTests = []txTest{
 					Sequence: 4294967295,
 				},
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x37, 0xb1, 0x7d, 0x76,
 							0x38, 0x51, 0xcd, 0x1a,
@@ -1204,9 +1201,9 @@ var txTests = []txTest{
 		},
 		idx:           1,
 		bip16:         false,
-		err:           btcscript.StackErrScriptFailed,
+		err:           btcscript.ErrStackScriptFailed,
 		nSigOps:       0, // multisig is in the pkScript!
-		scriptInfoErr: btcscript.StackErrNonPushOnly,
+		scriptInfoErr: btcscript.ErrStackNonPushOnly,
 	},
 	// taken from tx b2d93dfd0b2c1a380e55e76a8d9cb3075dec9f4474e9485be008c337fd62c1f7
 	// on testnet
@@ -1217,7 +1214,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x37, 0xb1, 0x7d, 0x76,
 							0x38, 0x51, 0xcd, 0x1a,
@@ -1277,7 +1274,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x6d, 0x58, 0xf8, 0xa3,
 							0xaa, 0x43, 0x0b, 0x84,
@@ -1343,7 +1340,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x6d, 0x58, 0xf8, 0xa3,
 							0xaa, 0x43, 0x0b, 0x84,
@@ -1391,7 +1388,7 @@ var txTests = []txTest{
 			btcscript.OP_EQUAL,
 		},
 		idx:     0,
-		err:     btcscript.StackErrScriptFailed,
+		err:     btcscript.ErrStackScriptFailed,
 		bip16:   true,
 		nSigOps: 0, // no signature ops in the pushed script.
 		scriptInfo: btcscript.ScriptInfo{
@@ -1408,7 +1405,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x6d, 0x58, 0xf8, 0xa3,
 							0xaa, 0x43, 0x0b, 0x84,
@@ -1456,9 +1453,9 @@ var txTests = []txTest{
 			btcscript.OP_EQUAL,
 		},
 		idx:           0,
-		err:           btcscript.StackErrShortScript,
+		err:           btcscript.ErrStackShortScript,
 		bip16:         true,
-		scriptInfoErr: btcscript.StackErrShortScript,
+		scriptInfoErr: btcscript.ErrStackShortScript,
 	},
 	{
 		// sigscript changed so to be non pushonly.
@@ -1467,7 +1464,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x6d, 0x58, 0xf8, 0xa3,
 							0xaa, 0x43, 0x0b, 0x84,
@@ -1519,10 +1516,10 @@ var txTests = []txTest{
 			btcscript.OP_EQUAL,
 		},
 		idx:           0,
-		parseErr:      btcscript.StackErrP2SHNonPushOnly,
+		parseErr:      btcscript.ErrStackP2SHNonPushOnly,
 		bip16:         true,
 		nSigOps:       0, // no signature ops in the pushed script.
-		scriptInfoErr: btcscript.StackErrNonPushOnly,
+		scriptInfoErr: btcscript.ErrStackNonPushOnly,
 	},
 	{
 		// sigscript changed so to be non pushonly.
@@ -1531,7 +1528,7 @@ var txTests = []txTest{
 			Version: 1,
 			TxIn: []*btcwire.TxIn{
 				{
-					PreviousOutpoint: btcwire.OutPoint{
+					PreviousOutPoint: btcwire.OutPoint{
 						Hash: btcwire.ShaHash([32]byte{
 							0x6d, 0x58, 0xf8, 0xa3,
 							0xaa, 0x43, 0x0b, 0x84,
@@ -1663,7 +1660,7 @@ func TestGetPreciseSignOps(t *testing.T) {
 		{
 			name:      "scriptSig doesn't parse",
 			scriptSig: []byte{btcscript.OP_PUSHDATA1, 2},
-			err:       btcscript.StackErrShortScript,
+			err:       btcscript.ErrStackShortScript,
 		},
 		{
 			name:      "scriptSig isn't push only",
@@ -1686,7 +1683,7 @@ func TestGetPreciseSignOps(t *testing.T) {
 			name: "pushed script doesn't parse",
 			scriptSig: []byte{btcscript.OP_DATA_2,
 				btcscript.OP_PUSHDATA1, 2},
-			err: btcscript.StackErrShortScript,
+			err: btcscript.ErrStackShortScript,
 		},
 	}
 	// The signature in the p2sh script is nonsensical for the tests since
@@ -1766,7 +1763,7 @@ func TestScriptInfo(t *testing.T) {
 				0xc4, 0xf5, 0x9c,
 			},
 			bip16:         true,
-			scriptInfoErr: btcscript.StackErrShortScript,
+			scriptInfoErr: btcscript.ErrStackShortScript,
 		},
 		{
 			name: "sigScript doesn't parse",
@@ -1786,7 +1783,7 @@ func TestScriptInfo(t *testing.T) {
 				0xc4, 0xf5, 0x9c, 0x74, btcscript.OP_EQUAL,
 			},
 			bip16:         true,
-			scriptInfoErr: btcscript.StackErrShortScript,
+			scriptInfoErr: btcscript.ErrStackShortScript,
 		},
 		{
 			// Invented scripts, the hashes do not match
@@ -1945,13 +1942,13 @@ var removeOpcodeTests = []removeOpcodeTest{
 		name:   "invalid length (insruction)",
 		before: []byte{btcscript.OP_PUSHDATA1},
 		remove: btcscript.OP_CODESEPARATOR,
-		err:    btcscript.StackErrShortScript,
+		err:    btcscript.ErrStackShortScript,
 	},
 	{
 		name:   "invalid length (data)",
 		before: []byte{btcscript.OP_PUSHDATA1, 255, 254},
 		remove: btcscript.OP_CODESEPARATOR,
-		err:    btcscript.StackErrShortScript,
+		err:    btcscript.ErrStackShortScript,
 	},
 }
 
@@ -2083,13 +2080,13 @@ var removeOpcodeByDataTests = []removeOpcodeByDataTest{
 		name:   "invalid length (instruction)",
 		before: []byte{btcscript.OP_PUSHDATA1},
 		remove: []byte{1, 2, 3, 4},
-		err:    btcscript.StackErrShortScript,
+		err:    btcscript.ErrStackShortScript,
 	},
 	{
 		name:   "invalid length (data)",
 		before: []byte{btcscript.OP_PUSHDATA1, 255, 254},
 		remove: []byte{1, 2, 3, 4},
-		err:    btcscript.StackErrShortScript,
+		err:    btcscript.ErrStackShortScript,
 	},
 }
 
@@ -2377,7 +2374,7 @@ func TestBadPC(t *testing.T) {
 		Version: 1,
 		TxIn: []*btcwire.TxIn{
 			{
-				PreviousOutpoint: btcwire.OutPoint{
+				PreviousOutPoint: btcwire.OutPoint{
 					Hash: btcwire.ShaHash([32]byte{
 						0xc9, 0x97, 0xa5, 0xe5,
 						0x6e, 0x10, 0x41, 0x02,
@@ -2436,7 +2433,7 @@ func TestCheckErrorCondition(t *testing.T) {
 		Version: 1,
 		TxIn: []*btcwire.TxIn{
 			{
-				PreviousOutpoint: btcwire.OutPoint{
+				PreviousOutPoint: btcwire.OutPoint{
 					Hash: btcwire.ShaHash([32]byte{
 						0xc9, 0x97, 0xa5, 0xe5,
 						0x6e, 0x10, 0x41, 0x02,
@@ -2493,7 +2490,7 @@ func TestCheckErrorCondition(t *testing.T) {
 		}
 
 		err = engine.CheckErrorCondition()
-		if err != btcscript.StackErrScriptUnfinished {
+		if err != btcscript.ErrStackScriptUnfinished {
 			t.Errorf("got unexepected error %v on %dth iteration",
 				err, i)
 			return
@@ -2518,7 +2515,7 @@ func TestCheckErrorCondition(t *testing.T) {
 type TstSigScript struct {
 	name               string
 	inputs             []TstInput
-	hashtype           byte
+	hashType           btcscript.SigHashType
 	compress           bool
 	scriptAtWrongIndex bool
 }
@@ -2577,7 +2574,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
@@ -2597,7 +2594,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
@@ -2611,7 +2608,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           true,
 		scriptAtWrongIndex: false,
 	},
@@ -2631,12 +2628,12 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           true,
 		scriptAtWrongIndex: false,
 	},
 	{
-		name: "hashtype SigHashNone",
+		name: "hashType SigHashNone",
 		inputs: []TstInput{
 			{
 				txout:              btcwire.NewTxOut(coinbaseVal, uncompressedPkScript),
@@ -2645,12 +2642,12 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashNone,
+		hashType:           btcscript.SigHashNone,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
 	{
-		name: "hashtype SigHashSingle",
+		name: "hashType SigHashSingle",
 		inputs: []TstInput{
 			{
 				txout:              btcwire.NewTxOut(coinbaseVal, uncompressedPkScript),
@@ -2659,12 +2656,12 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashSingle,
+		hashType:           btcscript.SigHashSingle,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
 	{
-		name: "hashtype SigHashAnyoneCanPay",
+		name: "hashType SigHashAnyoneCanPay",
 		inputs: []TstInput{
 			{
 				txout:              btcwire.NewTxOut(coinbaseVal, uncompressedPkScript),
@@ -2673,12 +2670,12 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAnyOneCanPay,
+		hashType:           btcscript.SigHashAnyOneCanPay,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
 	{
-		name: "hashtype non-standard",
+		name: "hashType non-standard",
 		inputs: []TstInput{
 			{
 				txout:              btcwire.NewTxOut(coinbaseVal, uncompressedPkScript),
@@ -2687,7 +2684,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           0x04,
+		hashType:           0x04,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
@@ -2701,7 +2698,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           true,
 		scriptAtWrongIndex: false,
 	},
@@ -2714,7 +2711,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           false,
 		scriptAtWrongIndex: false,
 	},
@@ -2734,7 +2731,7 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           false,
 		scriptAtWrongIndex: true,
 	},
@@ -2754,29 +2751,19 @@ var SigScriptTests = []TstSigScript{
 				indexOutOfRange:    false,
 			},
 		},
-		hashtype:           btcscript.SigHashAll,
+		hashType:           btcscript.SigHashAll,
 		compress:           false,
 		scriptAtWrongIndex: true,
 	},
 }
 
 // Test the sigscript generation for valid and invalid inputs, all
-// hashtypes, and with and without compression.  This test creates
+// hashTypes, and with and without compression.  This test creates
 // sigscripts to spend fake coinbase inputs, as sigscripts cannot be
 // created for the MsgTxs in txTests, since they come from the blockchain
 // and we don't have the private keys.
 func TestSignatureScript(t *testing.T) {
-	privKey := &ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: btcec.S256(),
-			X:     new(big.Int),
-			Y:     new(big.Int),
-		},
-		D: new(big.Int),
-	}
-	privKey.D.SetBytes(privKeyD)
-	privKey.PublicKey.X.SetBytes(pubkeyX)
-	privKey.PublicKey.Y.SetBytes(pubkeyY)
+	privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), privKeyD)
 
 nexttest:
 	for i := range SigScriptTests {
@@ -2802,7 +2789,7 @@ nexttest:
 			}
 			script, err = btcscript.SignatureScript(tx, idx,
 				SigScriptTests[i].inputs[j].txout.PkScript,
-				SigScriptTests[i].hashtype, privKey,
+				SigScriptTests[i].hashType, privKey,
 				SigScriptTests[i].compress)
 
 			if (err == nil) != SigScriptTests[i].inputs[j].sigscriptGenerates {
@@ -3239,7 +3226,7 @@ func TestMultiSigScript(t *testing.T) {
 }
 
 func signAndCheck(msg string, tx *btcwire.MsgTx, idx int, pkScript []byte,
-	hashType byte, kdb btcscript.KeyDB, sdb btcscript.ScriptDB,
+	hashType btcscript.SigHashType, kdb btcscript.KeyDB, sdb btcscript.ScriptDB,
 	previousScript []byte) error {
 
 	sigScript, err := btcscript.SignTxOutput(
@@ -3272,18 +3259,18 @@ func checkScripts(msg string, tx *btcwire.MsgTx, idx int,
 }
 
 type addressToKey struct {
-	key        *ecdsa.PrivateKey
+	key        *btcec.PrivateKey
 	compressed bool
 }
 
 func mkGetKey(keys map[string]addressToKey) btcscript.KeyDB {
 	if keys == nil {
-		return btcscript.KeyClosure(func(addr btcutil.Address) (*ecdsa.PrivateKey,
+		return btcscript.KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey,
 			bool, error) {
 			return nil, false, errors.New("nope")
 		})
 	}
-	return btcscript.KeyClosure(func(addr btcutil.Address) (*ecdsa.PrivateKey,
+	return btcscript.KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey,
 		bool, error) {
 		a2k, ok := keys[addr.EncodeAddress()]
 		if !ok {
@@ -3314,7 +3301,7 @@ func TestSignTxOutput(t *testing.T) {
 	// make key
 	// make script based on key.
 	// sign with magic pixie dust.
-	hashTypes := []byte{
+	hashTypes := []btcscript.SigHashType{
 		btcscript.SigHashOld, // no longer used but should act like all
 		btcscript.SigHashAll,
 		btcscript.SigHashNone,
@@ -3327,21 +3314,21 @@ func TestSignTxOutput(t *testing.T) {
 		Version: 1,
 		TxIn: []*btcwire.TxIn{
 			&btcwire.TxIn{
-				PreviousOutpoint: btcwire.OutPoint{
+				PreviousOutPoint: btcwire.OutPoint{
 					Hash:  btcwire.ShaHash{},
 					Index: 0,
 				},
 				Sequence: 4294967295,
 			},
 			&btcwire.TxIn{
-				PreviousOutpoint: btcwire.OutPoint{
+				PreviousOutPoint: btcwire.OutPoint{
 					Hash:  btcwire.ShaHash{},
 					Index: 1,
 				},
 				Sequence: 4294967295,
 			},
 			&btcwire.TxIn{
-				PreviousOutpoint: btcwire.OutPoint{
+				PreviousOutPoint: btcwire.OutPoint{
 					Hash:  btcwire.ShaHash{},
 					Index: 2,
 				},
@@ -3366,8 +3353,7 @@ func TestSignTxOutput(t *testing.T) {
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3404,8 +3390,7 @@ func TestSignTxOutput(t *testing.T) {
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3466,8 +3451,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3505,8 +3489,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3567,8 +3550,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3606,8 +3588,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3668,8 +3649,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3707,8 +3687,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3769,8 +3748,7 @@ func TestSignTxOutput(t *testing.T) {
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3827,8 +3805,7 @@ func TestSignTxOutput(t *testing.T) {
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3910,8 +3887,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -3968,8 +3944,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4050,8 +4025,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4108,8 +4082,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4190,8 +4163,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4248,8 +4220,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4330,8 +4301,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key1, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key1, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4348,8 +4318,7 @@ func TestSignTxOutput(t *testing.T) {
 				break
 			}
 
-			key2, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key2, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey 2 for %s: %v",
 					msg, err)
@@ -4409,8 +4378,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key1, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key1, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4427,8 +4395,7 @@ func TestSignTxOutput(t *testing.T) {
 				break
 			}
 
-			key2, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key2, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey 2 for %s: %v",
 					msg, err)
@@ -4518,8 +4485,7 @@ func TestSignTxOutput(t *testing.T) {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
 
-			key1, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key1, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey for %s: %v",
 					msg, err)
@@ -4536,8 +4502,7 @@ func TestSignTxOutput(t *testing.T) {
 				break
 			}
 
-			key2, err := ecdsa.GenerateKey(btcec.S256(),
-				rand.Reader)
+			key2, err := btcec.NewPrivateKey(btcec.S256())
 			if err != nil {
 				t.Errorf("failed to make privKey 2 for %s: %v",
 					msg, err)
@@ -4638,7 +4603,7 @@ func TestCalcMultiSigStats(t *testing.T) {
 				0x71, 0x05, 0xcd, 0x6a, 0x82, 0x8e, 0x03, 0x90,
 				0x9a, 0x67, 0x96, 0x2e, 0x0e, 0xa1, 0xf6, 0x1d,
 			},
-			expected: btcscript.StackErrShortScript,
+			expected: btcscript.ErrStackShortScript,
 		},
 		{
 			name: "stack underflow",
@@ -4653,7 +4618,7 @@ func TestCalcMultiSigStats(t *testing.T) {
 				0xeb, 0x64, 0x9f, 0x6b, 0xc3, 0xf4, 0xce, 0xf3,
 				0x08,
 			},
-			expected: btcscript.StackErrUnderflow,
+			expected: btcscript.ErrStackUnderflow,
 		},
 		{
 			name: "multisig script",

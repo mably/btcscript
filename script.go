@@ -6,12 +6,9 @@ package btcscript
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/conformal/btcec"
@@ -21,110 +18,110 @@ import (
 )
 
 var (
-	// StackErrShortScript is returned if the script has an opcode that is
+	// ErrStackShortScript is returned if the script has an opcode that is
 	// too long for the length of the script.
-	StackErrShortScript = errors.New("execute past end of script")
+	ErrStackShortScript = errors.New("execute past end of script")
 
-	// StackErrLongScript is returned if the script has an opcode that is
+	// ErrStackLongScript is returned if the script has an opcode that is
 	// too long for the length of the script.
-	StackErrLongScript = errors.New("script is longer than maximum allowed")
+	ErrStackLongScript = errors.New("script is longer than maximum allowed")
 
-	// StackErrUnderflow is returned if an opcode requires more items on the
-	// stack than is present.
-	StackErrUnderflow = errors.New("stack underflow")
+	// ErrStackUnderflow is returned if an opcode requires more items on the
+	// stack than is present.f
+	ErrStackUnderflow = errors.New("stack underflow")
 
-	// StackErrInvalidArgs is returned if the argument for an opcode is out
+	// ErrStackInvalidArgs is returned if the argument for an opcode is out
 	// of acceptable range.
-	StackErrInvalidArgs = errors.New("invalid argument")
+	ErrStackInvalidArgs = errors.New("invalid argument")
 
-	// StackErrOpDisabled is returned when a disabled opcode is encountered
+	// ErrStackOpDisabled is returned when a disabled opcode is encountered
 	// in the script.
-	StackErrOpDisabled = errors.New("Disabled Opcode")
+	ErrStackOpDisabled = errors.New("Disabled Opcode")
 
-	// StackErrVerifyFailed is returned when one of the OP_VERIFY or
+	// ErrStackVerifyFailed is returned when one of the OP_VERIFY or
 	// OP_*VERIFY instructions is executed and the conditions fails.
-	StackErrVerifyFailed = errors.New("Verify failed")
+	ErrStackVerifyFailed = errors.New("Verify failed")
 
-	// StackErrNumberTooBig is returned when the argument for an opcode that
+	// ErrStackNumberTooBig is returned when the argument for an opcode that
 	// should be an offset is obviously far too large.
-	StackErrNumberTooBig = errors.New("number too big")
+	ErrStackNumberTooBig = errors.New("number too big")
 
-	// StackErrInvalidOpcode is returned when an opcode marked as invalid or
+	// ErrStackInvalidOpcode is returned when an opcode marked as invalid or
 	// a completely undefined opcode is encountered.
-	StackErrInvalidOpcode = errors.New("Invalid Opcode")
+	ErrStackInvalidOpcode = errors.New("Invalid Opcode")
 
-	// StackErrReservedOpcode is returned when an opcode marked as reserved
+	// ErrStackReservedOpcode is returned when an opcode marked as reserved
 	// is encountered.
-	StackErrReservedOpcode = errors.New("Reserved Opcode")
+	ErrStackReservedOpcode = errors.New("Reserved Opcode")
 
-	// StackErrEarlyReturn is returned when OP_RETURN is executed in the
+	// ErrStackEarlyReturn is returned when OP_RETURN is executed in the
 	// script.
-	StackErrEarlyReturn = errors.New("Script returned early")
+	ErrStackEarlyReturn = errors.New("Script returned early")
 
-	// StackErrNoIf is returned if an OP_ELSE or OP_ENDIF is encountered
+	// ErrStackNoIf is returned if an OP_ELSE or OP_ENDIF is encountered
 	// without first having an OP_IF or OP_NOTIF in the script.
-	StackErrNoIf = errors.New("OP_ELSE or OP_ENDIF with no matching OP_IF")
+	ErrStackNoIf = errors.New("OP_ELSE or OP_ENDIF with no matching OP_IF")
 
-	// StackErrMissingEndif is returned if the end of a script is reached
+	// ErrStackMissingEndif is returned if the end of a script is reached
 	// without and OP_ENDIF to correspond to a conditional expression.
-	StackErrMissingEndif = fmt.Errorf("execute fail, in conditional execution")
+	ErrStackMissingEndif = fmt.Errorf("execute fail, in conditional execution")
 
-	// StackErrTooManyPubkeys is returned if an OP_CHECKMULTISIG is
+	// ErrStackTooManyPubkeys is returned if an OP_CHECKMULTISIG is
 	// encountered with more than MaxPubKeysPerMultiSig pubkeys present.
-	StackErrTooManyPubkeys = errors.New("Invalid pubkey count in OP_CHECKMULTISIG")
+	ErrStackTooManyPubkeys = errors.New("Invalid pubkey count in OP_CHECKMULTISIG")
 
-	// StackErrTooManyOperations is returned if a script has more than
+	// ErrStackTooManyOperations is returned if a script has more than
 	// MaxOpsPerScript opcodes that do not push data.
-	StackErrTooManyOperations = errors.New("Too many operations in script")
+	ErrStackTooManyOperations = errors.New("Too many operations in script")
 
-	// StackErrElementTooBig is returned if the size of an element to be
+	// ErrStackElementTooBig is returned if the size of an element to be
 	// pushed to the stack is over MaxScriptElementSize.
-	StackErrElementTooBig = errors.New("Element in script too large")
+	ErrStackElementTooBig = errors.New("Element in script too large")
 
-	// StackErrUnknownAddress is returned when ScriptToAddrHash does not
+	// ErrStackUnknownAddress is returned when ScriptToAddrHash does not
 	// recognise the pattern of the script and thus can not find the address
 	// for payment.
-	StackErrUnknownAddress = errors.New("non-recognised address")
+	ErrStackUnknownAddress = errors.New("non-recognised address")
 
-	// StackErrScriptFailed is returned when at the end of a script the
+	// ErrStackScriptFailed is returned when at the end of a script the
 	// boolean on top of the stack is false signifying that the script has
 	// failed.
-	StackErrScriptFailed = errors.New("execute fail, fail on stack")
+	ErrStackScriptFailed = errors.New("execute fail, fail on stack")
 
-	// StackErrScriptUnfinished is returned when CheckErrorCondition is
+	// ErrStackScriptUnfinished is returned when CheckErrorCondition is
 	// called on a script that has not finished executing.
-	StackErrScriptUnfinished = errors.New("Error check when script unfinished")
+	ErrStackScriptUnfinished = errors.New("Error check when script unfinished")
 
-	// StackErrEmpyStack is returned when the stack is empty at the end of
+	// ErrStackEmptyStack is returned when the stack is empty at the end of
 	// execution. Normal operation requires that a boolean is on top of the
 	// stack when the scripts have finished executing.
-	StackErrEmptyStack = errors.New("Stack empty at end of execution")
+	ErrStackEmptyStack = errors.New("Stack empty at end of execution")
 
-	// StackErrP2SHNonPushOnly is returned when a Pay-to-Script-Hash
+	// ErrStackP2SHNonPushOnly is returned when a Pay-to-Script-Hash
 	// transaction is encountered and the ScriptSig does operations other
 	// than push data (in violation of bip16).
-	StackErrP2SHNonPushOnly = errors.New("pay to script hash with non " +
+	ErrStackP2SHNonPushOnly = errors.New("pay to script hash with non " +
 		"pushonly input")
 
-	// StackErrInvalidParseType is an internal error returned from
+	// ErrStackInvalidParseType is an internal error returned from
 	// ScriptToAddrHash ony if the internal data tables are wrong.
-	StackErrInvalidParseType = errors.New("internal error: invalid parsetype found")
+	ErrStackInvalidParseType = errors.New("internal error: invalid parsetype found")
 
-	// StackErrInvalidAddrOffset is an internal error returned from
+	// ErrStackInvalidAddrOffset is an internal error returned from
 	// ScriptToAddrHash ony if the internal data tables are wrong.
-	StackErrInvalidAddrOffset = errors.New("internal error: invalid offset found")
+	ErrStackInvalidAddrOffset = errors.New("internal error: invalid offset found")
 
-	// StackErrInvalidIndex is returned when an out-of-bounds index was
+	// ErrStackInvalidIndex is returned when an out-of-bounds index was
 	// passed to a function.
-	StackErrInvalidIndex = errors.New("Invalid script index")
+	ErrStackInvalidIndex = errors.New("Invalid script index")
 
-	// StackErrNonPushOnly is returned when ScriptInfo is called with a
+	// ErrStackNonPushOnly is returned when ScriptInfo is called with a
 	// pkScript that peforms operations other that pushing data to the stack.
-	StackErrNonPushOnly = errors.New("SigScript is non pushonly")
+	ErrStackNonPushOnly = errors.New("SigScript is non pushonly")
 
-	// StackErrOverflow is returned when stack and altstack combined depth
+	// ErrStackOverflow is returned when stack and altstack combined depth
 	// is over the limit.
-	StackErrOverflow = errors.New("Stacks overflowed")
+	ErrStackOverflow = errors.New("Stacks overflowed")
 )
 
 const (
@@ -145,13 +142,16 @@ var ErrUnsupportedAddress = errors.New("unsupported address type")
 // This timestamp corresponds to Sun Apr 1 00:00:00 UTC 2012.
 var Bip16Activation = time.Unix(1333238400, 0)
 
+// SigHashType represents hash type bits at the end of a signature.
+type SigHashType byte
+
 // Hash type bits from the end of a signature.
 const (
-	SigHashOld          = 0x0
-	SigHashAll          = 0x1
-	SigHashNone         = 0x2
-	SigHashSingle       = 0x3
-	SigHashAnyOneCanPay = 0x80
+	SigHashOld          SigHashType = 0x0
+	SigHashAll          SigHashType = 0x1
+	SigHashNone         SigHashType = 0x2
+	SigHashSingle       SigHashType = 0x3
+	SigHashAnyOneCanPay SigHashType = 0x80
 )
 
 // These are the constants specified for maximums in individual scripts.
@@ -418,7 +418,7 @@ func parseScriptTemplate(script []byte, opcodemap map[byte]*opcode) ([]parsedOpc
 		instr := script[i]
 		op, ok := opcodemap[instr]
 		if !ok {
-			return retScript, StackErrInvalidOpcode
+			return retScript, ErrStackInvalidOpcode
 		}
 		pop := parsedOpcode{opcode: op}
 		// parse data out of instruction.
@@ -428,7 +428,7 @@ func parseScriptTemplate(script []byte, opcodemap map[byte]*opcode) ([]parsedOpc
 			i++
 		case op.length > 1:
 			if len(script[i:]) < op.length {
-				return retScript, StackErrShortScript
+				return retScript, ErrStackShortScript
 			}
 			// slice out the data.
 			pop.data = script[i+1 : i+op.length]
@@ -438,7 +438,7 @@ func parseScriptTemplate(script []byte, opcodemap map[byte]*opcode) ([]parsedOpc
 			off := i + 1
 
 			if len(script[off:]) < -op.length {
-				return retScript, StackErrShortScript
+				return retScript, ErrStackShortScript
 			}
 
 			// Next -length bytes are little endian length of data.
@@ -463,7 +463,7 @@ func parseScriptTemplate(script []byte, opcodemap map[byte]*opcode) ([]parsedOpc
 			// Disallow entries that do not fit script or were
 			// sign extended.
 			if int(l) > len(script[off:]) || int(l) < 0 {
-				return retScript, StackErrShortScript
+				return retScript, ErrStackShortScript
 			}
 			pop.data = script[off : off+int(l)]
 			i += 1 - op.length + int(l)
@@ -525,7 +525,7 @@ func NewScript(scriptSig []byte, scriptPubKey []byte, txidx int, tx *btcwire.Msg
 	m.scripts = make([][]parsedOpcode, len(scripts))
 	for i, scr := range scripts {
 		if len(scr) > maxScriptSize {
-			return nil, StackErrLongScript
+			return nil, ErrStackLongScript
 		}
 		var err error
 		m.scripts[i], err = parseScript(scr)
@@ -548,7 +548,7 @@ func NewScript(scriptSig []byte, scriptPubKey []byte, txidx int, tx *btcwire.Msg
 		// if we are pay to scripthash then we only accept input
 		// scripts that push data
 		if !isPushOnly(m.scripts[0]) {
-			return nil, StackErrP2SHNonPushOnly
+			return nil, ErrStackP2SHNonPushOnly
 		}
 		m.bip16 = true
 	}
@@ -608,10 +608,10 @@ func (s *Script) CheckErrorCondition() (err error) {
 	// Check we are actually done. if pc is past the end of script array
 	// then we have run out of scripts to run.
 	if s.scriptidx < len(s.scripts) {
-		return StackErrScriptUnfinished
+		return ErrStackScriptUnfinished
 	}
 	if s.dstack.Depth() < 1 {
-		return StackErrEmptyStack
+		return ErrStackEmptyStack
 	}
 	v, err := s.dstack.PopBool()
 	if err == nil && v == false {
@@ -622,7 +622,7 @@ func (s *Script) CheckErrorCondition() (err error) {
 			return fmt.Sprintf("scripts failed: script0: %s\n"+
 				"script1: %s", dis0, dis1)
 		}))
-		err = StackErrScriptFailed
+		err = ErrStackScriptFailed
 	}
 	return err
 }
@@ -632,67 +632,67 @@ func (s *Script) CheckErrorCondition() (err error) {
 // will return true in the case that the last opcode was successfully executed.
 // if an error is returned then the result of calling Step or any other method
 // is undefined.
-func (m *Script) Step() (done bool, err error) {
+func (s *Script) Step() (done bool, err error) {
 	// verify that it is pointing to a valid script address
-	err = m.validPC()
+	err = s.validPC()
 	if err != nil {
 		return true, err
 	}
-	opcode := m.scripts[m.scriptidx][m.scriptoff]
+	opcode := s.scripts[s.scriptidx][s.scriptoff]
 
-	err = opcode.exec(m)
+	err = opcode.exec(s)
 	if err != nil {
 		return true, err
 	}
 
-	if m.dstack.Depth()+m.astack.Depth() > maxStackSize {
-		return false, StackErrOverflow
+	if s.dstack.Depth()+s.astack.Depth() > maxStackSize {
+		return false, ErrStackOverflow
 	}
 
 	// prepare for next instruction
-	m.scriptoff++
-	if m.scriptoff >= len(m.scripts[m.scriptidx]) {
+	s.scriptoff++
+	if s.scriptoff >= len(s.scripts[s.scriptidx]) {
 		// Illegal to have an `if' that straddles two scripts.
-		if err == nil && len(m.condStack) != 1 {
-			return false, StackErrMissingEndif
+		if err == nil && len(s.condStack) != 1 {
+			return false, ErrStackMissingEndif
 		}
 
 		// alt stack doesn't persist.
-		_ = m.astack.DropN(m.astack.Depth())
+		_ = s.astack.DropN(s.astack.Depth())
 
-		m.numOps = 0 // number of ops is per script.
-		m.scriptoff = 0
-		if m.scriptidx == 0 && m.bip16 {
-			m.scriptidx++
-			m.savedFirstStack = m.GetStack()
-		} else if m.scriptidx == 1 && m.bip16 {
+		s.numOps = 0 // number of ops is per script.
+		s.scriptoff = 0
+		if s.scriptidx == 0 && s.bip16 {
+			s.scriptidx++
+			s.savedFirstStack = s.GetStack()
+		} else if s.scriptidx == 1 && s.bip16 {
 			// Put us past the end for CheckErrorCondition()
-			m.scriptidx++
+			s.scriptidx++
 			// We check script ran ok, if so then we pull
 			// the script out of the first stack and executre that.
-			err := m.CheckErrorCondition()
+			err := s.CheckErrorCondition()
 			if err != nil {
 				return false, err
 			}
 
-			script := m.savedFirstStack[len(m.savedFirstStack)-1]
+			script := s.savedFirstStack[len(s.savedFirstStack)-1]
 			pops, err := parseScript(script)
 			if err != nil {
 				return false, err
 			}
-			m.scripts = append(m.scripts, pops)
+			s.scripts = append(s.scripts, pops)
 			// Set stack to be the stack from first script
 			// minus the script itself
-			m.SetStack(m.savedFirstStack[:len(m.savedFirstStack)-1])
+			s.SetStack(s.savedFirstStack[:len(s.savedFirstStack)-1])
 		} else {
-			m.scriptidx++
+			s.scriptidx++
 		}
 		// there are zero length scripts in the wild
-		if m.scriptidx < len(m.scripts) && m.scriptoff >= len(m.scripts[m.scriptidx]) {
-			m.scriptidx++
+		if s.scriptidx < len(s.scripts) && s.scriptoff >= len(s.scripts[s.scriptidx]) {
+			s.scriptidx++
 		}
-		m.lastcodesep = 0
-		if m.scriptidx >= len(m.scripts) {
+		s.lastcodesep = 0
+		if s.scriptidx >= len(s.scripts) {
 			return true, nil
 		}
 	}
@@ -701,55 +701,55 @@ func (m *Script) Step() (done bool, err error) {
 
 // curPC returns either the current script and offset, or an error if the
 // position isn't valid.
-func (m *Script) curPC() (script int, off int, err error) {
-	err = m.validPC()
+func (s *Script) curPC() (script int, off int, err error) {
+	err = s.validPC()
 	if err != nil {
 		return 0, 0, err
 	}
-	return m.scriptidx, m.scriptoff, nil
+	return s.scriptidx, s.scriptoff, nil
 }
 
 // validPC returns an error if the current script position is valid for
 // execution, nil otherwise.
-func (m *Script) validPC() error {
-	if m.scriptidx >= len(m.scripts) {
-		return fmt.Errorf("Past input scripts %v:%v %v:xxxx", m.scriptidx, m.scriptoff, len(m.scripts))
+func (s *Script) validPC() error {
+	if s.scriptidx >= len(s.scripts) {
+		return fmt.Errorf("Past input scripts %v:%v %v:xxxx", s.scriptidx, s.scriptoff, len(s.scripts))
 	}
-	if m.scriptoff >= len(m.scripts[m.scriptidx]) {
-		return fmt.Errorf("Past input scripts %v:%v %v:%04d", m.scriptidx, m.scriptoff, m.scriptidx, len(m.scripts[m.scriptidx]))
+	if s.scriptoff >= len(s.scripts[s.scriptidx]) {
+		return fmt.Errorf("Past input scripts %v:%v %v:%04d", s.scriptidx, s.scriptoff, s.scriptidx, len(s.scripts[s.scriptidx]))
 	}
 	return nil
 }
 
 // DisasmScript returns the disassembly string for the script at offset
 // ``idx''.  Where 0 is the scriptSig and 1 is the scriptPubKey.
-func (m *Script) DisasmScript(idx int) (disstr string, err error) {
-	if idx >= len(m.scripts) {
-		return "", StackErrInvalidIndex
+func (s *Script) DisasmScript(idx int) (disstr string, err error) {
+	if idx >= len(s.scripts) {
+		return "", ErrStackInvalidIndex
 	}
-	for i := range m.scripts[idx] {
-		disstr = disstr + m.disasm(idx, i) + "\n"
+	for i := range s.scripts[idx] {
+		disstr = disstr + s.disasm(idx, i) + "\n"
 	}
 	return disstr, nil
 }
 
 // DisasmPC returns the string for the disassembly of the opcode that will be
 // next to execute when Step() is called.
-func (m *Script) DisasmPC() (disstr string, err error) {
-	scriptidx, scriptoff, err := m.curPC()
+func (s *Script) DisasmPC() (disstr string, err error) {
+	scriptidx, scriptoff, err := s.curPC()
 	if err != nil {
 		return "", err
 	}
-	return m.disasm(scriptidx, scriptoff), nil
+	return s.disasm(scriptidx, scriptoff), nil
 }
 
 // disasm is a helper member to produce the output for DisasmPC and
 // DisasmScript. It produces the opcode prefixed by the program counter at the
 // provided position in the script. it does no error checking and leaves that
 // to the caller to provide a valid offse.
-func (m *Script) disasm(scriptidx int, scriptoff int) string {
+func (s *Script) disasm(scriptidx int, scriptoff int) string {
 	return fmt.Sprintf("%02x:%04x: %s", scriptidx, scriptoff,
-		m.scripts[scriptidx][scriptoff].print(false))
+		s.scripts[scriptidx][scriptoff].print(false))
 }
 
 // subScript will return the script since the last OP_CODESEPARATOR
@@ -805,7 +805,7 @@ func DisasmString(buf []byte) (string, error) {
 // calcScriptHash will, given the a script and hashtype for the current
 // scriptmachine, calculate the doubleSha256 hash of the transaction and
 // script to be used for signature signing and verification.
-func calcScriptHash(script []parsedOpcode, hashType byte, tx *btcwire.MsgTx, idx int) []byte {
+func calcScriptHash(script []parsedOpcode, hashType SigHashType, tx *btcwire.MsgTx, idx int) []byte {
 
 	// remove all instances of OP_CODESEPARATOR still left in the script
 	script = removeOpcode(script, OP_CODESEPARATOR)
@@ -1097,7 +1097,7 @@ func MultiSigScript(pubkeys []*btcutil.AddressPubKey, nrequired int) ([]byte, er
 // serialized in either a compressed or uncompressed format based on
 // compress. This format must match the same format used to generate
 // the payment address, or the script validation will fail.
-func SignatureScript(tx *btcwire.MsgTx, idx int, subscript []byte, hashType byte, privKey *ecdsa.PrivateKey, compress bool) ([]byte, error) {
+func SignatureScript(tx *btcwire.MsgTx, idx int, subscript []byte, hashType SigHashType, privKey *btcec.PrivateKey, compress bool) ([]byte, error) {
 	sig, err := signTxOutput(tx, idx, subscript, hashType, privKey)
 	if err != nil {
 		return nil, err
@@ -1114,29 +1114,22 @@ func SignatureScript(tx *btcwire.MsgTx, idx int, subscript []byte, hashType byte
 	return NewScriptBuilder().AddData(sig).AddData(pkData).Script(), nil
 }
 
-func signTxOutput(tx *btcwire.MsgTx, idx int, subScript []byte, hashType byte,
-	key *ecdsa.PrivateKey) ([]byte, error) {
-
-	return signTxOutputCustomReader(rand.Reader, tx, idx, subScript,
-		hashType, key)
-}
-
-func signTxOutputCustomReader(reader io.Reader, tx *btcwire.MsgTx, idx int,
-	subScript []byte, hashType byte, key *ecdsa.PrivateKey) ([]byte, error) {
+func signTxOutput(tx *btcwire.MsgTx, idx int, subScript []byte,
+	hashType SigHashType, key *btcec.PrivateKey) ([]byte, error) {
 	parsedScript, err := parseScript(subScript)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse output script: %v", err)
 	}
 	hash := calcScriptHash(parsedScript, hashType, tx, idx)
-	r, s, err := ecdsa.Sign(reader, key, hash)
+	signature, err := key.Sign(hash)
 	if err != nil {
 		return nil, fmt.Errorf("cannot sign tx input: %s", err)
 	}
 
-	return append((&btcec.Signature{R: r, S: s}).Serialize(), hashType), nil
+	return append(signature.Serialize(), byte(hashType)), nil
 }
 
-func p2pkSignatureScript(tx *btcwire.MsgTx, idx int, subScript []byte, hashType byte, privKey *ecdsa.PrivateKey) ([]byte, error) {
+func p2pkSignatureScript(tx *btcwire.MsgTx, idx int, subScript []byte, hashType SigHashType, privKey *btcec.PrivateKey) ([]byte, error) {
 	sig, err := signTxOutput(tx, idx, subScript, hashType, privKey)
 	if err != nil {
 		return nil, err
@@ -1149,7 +1142,7 @@ func p2pkSignatureScript(tx *btcwire.MsgTx, idx int, subScript []byte, hashType 
 // possible. It returns the generated script and a boolean if the script fulfils
 // the contract (i.e. nrequired signatures are provided).  Since it is arguably
 // legal to not be able to sign any of the outputs, no error is returned.
-func signMultiSig(tx *btcwire.MsgTx, idx int, subScript []byte, hashType byte,
+func signMultiSig(tx *btcwire.MsgTx, idx int, subScript []byte, hashType SigHashType,
 	addresses []btcutil.Address, nRequired int, kdb KeyDB) ([]byte, bool) {
 	// We start with a single OP_FALSE to work around the (now standard)
 	// but in the reference implementation that causes a spurious pop at
@@ -1178,7 +1171,7 @@ func signMultiSig(tx *btcwire.MsgTx, idx int, subScript []byte, hashType byte,
 }
 
 func sign(net *btcnet.Params, tx *btcwire.MsgTx, idx int, subScript []byte,
-	hashType byte, kdb KeyDB, sdb ScriptDB) ([]byte, ScriptClass,
+	hashType SigHashType, kdb KeyDB, sdb ScriptDB) ([]byte, ScriptClass,
 	[]btcutil.Address, int, error) {
 
 	class, addresses, nrequired, err := ExtractPkScriptAddrs(subScript, net)
@@ -1355,7 +1348,7 @@ sigLoop:
 			continue
 		}
 		tSig := sig[:len(sig)-1]
-		hashType := sig[len(sig)-1]
+		hashType := SigHashType(sig[len(sig)-1])
 
 		pSig, err := btcec.ParseDERSignature(tSig, btcec.S256())
 		if err != nil {
@@ -1380,9 +1373,7 @@ sigLoop:
 			// If it matches we put it in the map. We only
 			// can take one signature per public key so if we
 			// already have one, we can throw this away.
-			if ecdsa.Verify(pubKey.ToECDSA(), hash,
-				pSig.R, pSig.S) {
-
+			if pSig.Verify(hash, pubKey) {
 				aStr := addr.EncodeAddress()
 				if _, ok := addrToSig[aStr]; !ok {
 					addrToSig[aStr] = sig
@@ -1420,14 +1411,14 @@ sigLoop:
 // KeyDB is an interface type provided to SignTxOutput, it encapsulates
 // any user state required to get the private keys for an address.
 type KeyDB interface {
-	GetKey(btcutil.Address) (*ecdsa.PrivateKey, bool, error)
+	GetKey(btcutil.Address) (*btcec.PrivateKey, bool, error)
 }
 
 // KeyClosure implements ScriptDB with a closure
-type KeyClosure func(btcutil.Address) (*ecdsa.PrivateKey, bool, error)
+type KeyClosure func(btcutil.Address) (*btcec.PrivateKey, bool, error)
 
 // GetKey implements KeyDB by returning the result of calling the closure
-func (kc KeyClosure) GetKey(address btcutil.Address) (*ecdsa.PrivateKey,
+func (kc KeyClosure) GetKey(address btcutil.Address) (*btcec.PrivateKey,
 	bool, error) {
 	return kc(address)
 }
@@ -1449,12 +1440,12 @@ func (sc ScriptClosure) GetScript(address btcutil.Address) ([]byte, error) {
 // SignTxOutput signs output idx of the given tx to resolve the script given in
 // pkScript with a signature type of hashType. Any keys required will be
 // looked up by calling getKey() with the string of the given address.
-// Any pay-to-script-hash signatures will be similarly lookedu p by calling
+// Any pay-to-script-hash signatures will be similarly looked up by calling
 // getScript. If previousScript is provided then the results in previousScript
 // will be merged in a type-dependant manner with the newly generated.
 // signature script.
 func SignTxOutput(net *btcnet.Params, tx *btcwire.MsgTx, idx int,
-	pkScript []byte, hashType byte, kdb KeyDB, sdb ScriptDB,
+	pkScript []byte, hashType SigHashType, kdb KeyDB, sdb ScriptDB,
 	previousScript []byte) ([]byte, error) {
 
 	sigScript, class, addresses, nrequired, err := sign(net, tx, idx,
@@ -1522,16 +1513,21 @@ func expectedInputs(pops []parsedOpcode, class ScriptClass) int {
 	}
 }
 
+// ScriptInfo houses information about a script pair that is determined by
+// CalcScriptInfo.
 type ScriptInfo struct {
 	// The class of the sigscript, equivalent to calling GetScriptClass
 	// on the sigScript.
 	PkScriptClass ScriptClass
-	// the number of inputs provided by the pkScript
+
+	// NumInputs is the number of inputs provided by the pkScript.
 	NumInputs int
-	// the number of outputs required by sigScript and any
+
+	// ExpectedInputs is the number of outputs required by sigScript and any
 	// pay-to-script-hash scripts. The number will be -1 if unknown.
 	ExpectedInputs int
-	// The nubmer of signature operations in the scriptpair.
+
+	// SigOps is the nubmer of signature operations in the script pair.
 	SigOps int
 }
 
@@ -1557,7 +1553,7 @@ func CalcScriptInfo(sigscript, pkscript []byte, bip16 bool) (*ScriptInfo, error)
 
 	// Can't have a pkScript that doesn't just push data.
 	if !isPushOnly(sigPops) {
-		return nil, StackErrNonPushOnly
+		return nil, ErrStackNonPushOnly
 	}
 
 	si.ExpectedInputs = expectedInputs(pkPops, si.PkScriptClass)
@@ -1618,7 +1614,7 @@ func CalcMultiSigStats(script []byte) (int, int, error) {
 	// items must be on the stack per:
 	//  OP_1 PUBKEY OP_1 OP_CHECKMULTISIG
 	if len(pops) < 4 {
-		return 0, 0, StackErrUnderflow
+		return 0, 0, ErrStackUnderflow
 	}
 
 	numSigs := asSmallInt(pops[0].opcode)
