@@ -14,9 +14,9 @@ import (
 	"math/big"
 
 	"code.google.com/p/go.crypto/ripemd160"
-	"github.com/conformal/btcec"
+	"github.com/btcsuite/btcec"
 	"github.com/mably/btcwire"
-	"github.com/conformal/fastsha256"
+	"github.com/btcsuite/fastsha256"
 )
 
 // An opcode defines the information related to a btcscript opcode.

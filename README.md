@@ -45,13 +45,13 @@ $ go get github.com/mably/btcscript
 ## Examples
 
 * [Standard Pay-to-pubkey-hash Script]
-  (http://godoc.org/github.com/conformal/btcscript#example-PayToAddrScript)  
+  (http://godoc.org/github.com/btcsuite/btcscript#example-PayToAddrScript)  
   Demonstrates creating a script which pays to a bitcoin address.  It also
   prints the created script hex and uses the DisasmString function to display
   the disassembled script.
 
 * [Extracting Details from Standard Scripts]
-  (http://godoc.org/github.com/conformal/btcscript#example-ExtractPkScriptAddrs)  
+  (http://godoc.org/github.com/btcsuite/btcscript#example-ExtractPkScriptAddrs)  
   Demonstrates extracting information from a standard public key script.
 
 ## TODO
